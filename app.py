@@ -50,9 +50,9 @@ PALETAS = {
 }
 
 TABLEROS = {
-    "Panorámico (700×330)": (700, 330),
+    "Panorámico (690×330)": (690, 330),
     "Extra ancho (820×330)": (820, 330),
-    "Compacto (600×330)": (600, 330),
+    "Compacto (590×330)": (590, 330),
 }
 
 CSS = """
@@ -174,6 +174,12 @@ CSS = """
 .st-key-result_card { background: var(--vino-oscuro); border-left: 12px solid var(--boton); max-height: 460px; overflow-y: auto; }
 .st-key-result_card p, .st-key-result_card li, .st-key-result_card span { color: #FFFFFF !important; font-size: 1.08rem; line-height: 1.55; }
 .card-h { font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: #FFFFFF; letter-spacing: 1px; margin-bottom: 6px; }
+
+/* ---------------- AVISOS (contraste alto: texto oscuro) ---------------- */
+[data-testid="stAlert"] {
+  background: #FFF3CD !important; border: 2px solid var(--tinta) !important; border-radius: 12px !important;
+}
+[data-testid="stAlert"] *, [data-testid="stAlertContainer"] * { color: #1F1308 !important; font-weight: 500; }
 
 /* ---------------- FONDO: LÍNEAS DE VELOCIDAD ---------------- */
 .bg-layer {
@@ -453,7 +459,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-col_tablero, col_analisis = st.columns([3, 1], gap="medium")
+col_tablero, col_analisis = st.columns([11, 5], gap="medium")
 
 # ------------------------------ TABLERO ----------------------------------
 with col_tablero:
