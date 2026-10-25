@@ -102,62 +102,38 @@ CSS = """
 }
 [data-testid="stTextInput"] label p { color: #FFFFFF !important; font-weight: 500; }
 
-/* ---------------- PORTADA ---------------- */
+/* ---------------- PORTADA (delgada y sin animación) ---------------- */
 .race-hero {
   position: relative; overflow: hidden; text-align: center;
-  background: linear-gradient(135deg, #2B2926 0%, #1F1308 100%);
-  border: 3px solid var(--tinta); border-radius: 18px;
-  padding: 44px 30px 34px; margin-bottom: 26px;
-  box-shadow: 7px 7px 0 var(--amarillo);
+  background: var(--asfalto); border: 3px solid var(--tinta); border-radius: 12px;
+  padding: 18px 20px 12px; margin-bottom: 14px; box-shadow: 4px 4px 0 var(--amarillo);
 }
-.race-hero::before {
-  content: ""; position: absolute; top: 0; bottom: 0; left: -140px; width: calc(100% + 280px);
-  background: repeating-linear-gradient(90deg, transparent 0 60px, rgba(240,176,60,.13) 60px 72px, transparent 72px 140px);
-  transform: skewX(-25deg); animation: stripes 1.4s linear infinite;
-}
-@keyframes stripes { to { transform: skewX(-25deg) translateX(140px); } }
 .race-hero .checker {
-  position: absolute; left: 0; right: 0; height: 18px;
-  background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 36px 36px;
-  animation: checkmove 1.1s linear infinite;
+  position: absolute; left: 0; right: 0; top: 0; height: 6px;
+  background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 12px 12px;
 }
-.race-hero .checker.top { top: 0; }
-.race-hero .checker.bottom { bottom: 0; animation-direction: reverse; }
-@keyframes checkmove { to { background-position: 36px 0; } }
-
 .race-hero h1 {
-  position: relative; display: inline-block; margin: 0;
+  margin: 0; display: inline-block; transform: skewX(-6deg);
   font-family: 'Racing Sans One', cursive; font-weight: 400;
-  font-size: 4.2rem; line-height: 1.15; letter-spacing: 2px; text-transform: uppercase;
-  transform: skewX(-8deg);
-  background: linear-gradient(90deg, #FFF6E0, #F8DE95, #F0B03C, #FFE7A8, #F3E3C3, #FFF6E0);
-  background-size: 300% 100%;
+  font-size: 2.1rem; line-height: 1.2; letter-spacing: 2px; text-transform: uppercase;
+  background: linear-gradient(90deg, #FFF6E0, #F0B03C, #FFF6E0);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 10px rgba(240,176,60,.45));
-  animation: titleflow 5s linear infinite;
 }
-@keyframes titleflow { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
-.race-hero .sub { position: relative; margin: 8px 0 0; color: #FFF8E1; font-size: 1.2rem; font-weight: 500; }
-.race-hero .chips { position: relative; margin-top: 10px; }
-.race-hero .chips span {
-  display: inline-block; margin: 8px 6px 0; padding: 6px 16px; border-radius: 999px;
-  background: var(--boton); color: var(--cafe); font-weight: 700; border: 2px solid #FFF6E0;
-  box-shadow: 0 0 12px rgba(240,176,60,.5);
-}
+.race-hero .sub { margin: 0; color: #FFF8E1; font-size: .95rem; font-weight: 500; }
 
 /* ---------------- TÍTULOS DE SECCIÓN ---------------- */
 .sec-title {
-  text-align: left; margin: 4px 0 4px; font-family: 'Racing Sans One', cursive;
-  font-size: 1.9rem; letter-spacing: 1.5px; color: var(--cafe);
+  text-align: center; margin: 14px 0 2px; font-family: 'Racing Sans One', cursive;
+  font-size: 1.6rem; letter-spacing: 1.5px; color: var(--cafe);
 }
-.sec-sub { text-align: left; margin: 0 0 14px; color: #6E5A44; font-size: 1.05rem; font-weight: 500; }
+.sec-sub { text-align: center; margin: 0 0 12px; color: #6E5A44; font-size: 1.05rem; font-weight: 500; }
 
 /* ---------------- TABLERO (centrado) ---------------- */
 .st-key-canvas_card {
   background: #FFFDF7; border: 4px solid var(--tinta); border-radius: 16px; padding: 16px;
   box-shadow: 8px 8px 0 var(--tinta);
-  width: fit-content !important; max-width: 100%; margin-left: 0; margin-right: auto; align-items: center;
+  width: fit-content !important; max-width: 100%; margin-left: auto; margin-right: auto; align-items: center;
 }
 .st-key-canvas_card::before {
   content: ""; display: block; width: 100%; height: 14px; border-radius: 6px; margin-bottom: 6px;
@@ -168,7 +144,7 @@ CSS = """
 /* ---------------- TARJETAS DE ANÁLISIS (vino tinto, textos blancos) ---------------- */
 .st-key-key_card, .st-key-result_card {
   background: var(--vino); border: 3px solid var(--tinta); border-radius: 16px; padding: 18px 20px;
-  box-shadow: 6px 6px 0 var(--tinta); width: 100%; margin: 0 0 20px 0;
+  box-shadow: 6px 6px 0 var(--tinta); width: 100%; max-width: 898px; margin: 16px auto 0 auto;
 }
 .st-key-result_card { background: var(--vino-oscuro); border-left: 12px solid var(--boton); }
 .st-key-result_card p, .st-key-result_card li, .st-key-result_card span { color: #FFFFFF !important; font-size: 1.08rem; line-height: 1.55; }
@@ -381,11 +357,9 @@ st.markdown(
     flat(
         """
 <div class="race-hero">
-  <div class="checker top"></div>
+  <div class="checker"></div>
   <h1>Tablero Inteligente</h1>
-  <p class="sub">🏎️ Dibuja carros, bólidos y circuitos de carreras, y mira cómo la máquina interpreta tu boceto.</p>
-  <div class="chips"><span>🏁 1. Dibuja</span><span>⚡ 2. Analiza</span><span>🏆 3. Descubre</span></div>
-  <div class="checker bottom"></div>
+  <p class="sub">🏎️ Dibuja carros, bólidos y circuitos de carreras</p>
 </div>
 """
     ),
@@ -403,77 +377,81 @@ def imagen_a_base64(image_data) -> str:
 
 
 # =========================================================================
-# LAYOUT: TABLERO A LA IZQUIERDA  |  ANÁLISIS A LA DERECHA
+# TABLERO ANCHO Y CENTRADO
 # =========================================================================
-col_tablero, col_analisis = st.columns([3, 2], gap="medium")
+st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel.</div>',
+    unsafe_allow_html=True,
+)
 
-# ------------------------------ TABLERO ----------------------------------
-with col_tablero:
-    st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel.</div>',
-        unsafe_allow_html=True,
-    )
-    with st.container(key="canvas_card"):
-        canvas_result = st_canvas(
-            fill_color="rgba(240, 176, 60, 0.30)",
-            stroke_width=stroke_width,
-            stroke_color=stroke_color,
-            background_color="#FFFFFF",
-            height=380,
-            width=540,
-            drawing_mode=drawing_mode,
-            key=f"canvas_{st.session_state.canvas_v}",
-        )
-
-# ------------------------------ ANÁLISIS ---------------------------------
-with col_analisis:
-    st.markdown('<div class="sec-title">⚡ Zona de análisis</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="sec-sub">Ingresa tu clave y presiona el botón para analizar tu boceto.</div>',
-        unsafe_allow_html=True,
+with st.container(key="canvas_card"):
+    canvas_result = st_canvas(
+        fill_color="rgba(240, 176, 60, 0.30)",
+        stroke_width=stroke_width,
+        stroke_color=stroke_color,
+        background_color="#FFFFFF",
+        height=360,
+        width=860,
+        drawing_mode=drawing_mode,
+        key=f"canvas_{st.session_state.canvas_v}",
     )
 
-    with st.container(key="key_card"):
-        st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
+# =========================================================================
+# ZONA DE ANÁLISIS (abajo)
+# =========================================================================
+st.markdown('<div class="sec-title">⚡ Zona de análisis</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="sec-sub">Haz tu dibujo y la IA creará una historia a partir de esto.</div>',
+    unsafe_allow_html=True,
+)
+
+with st.container(key="key_card"):
+    st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
+    c_key, c_btn = st.columns([3, 2], vertical_alignment="bottom")
+    with c_key:
         ke = st.text_input("Ingresa tu Clave", type="password", placeholder="sk-...")
-        analyze_button = st.button("🚀 ¡Analiza la imagen!", use_container_width=True)
+    with c_btn:
+        analyze_button = st.button("🚀 ¡Crear mi historia!", use_container_width=True)
 
-    api_key = ke.strip() if ke else ""
+api_key = ke.strip() if ke else ""
 
-    if not api_key:
-        st.warning("Por favor ingresa tu API key.")
-    elif analyze_button:
-        objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
-        if canvas_result is None or canvas_result.image_data is None or not objetos:
-            st.warning("🏎️ ¡Primero dibuja algo en la pista!")
-        else:
-            with st.spinner("🏎️ Calentando motores... analizando tu boceto"):
-                try:
-                    client = OpenAI(api_key=api_key)
-                    base64_image = imagen_a_base64(canvas_result.image_data)
-                    prompt_text = "Describe the image in spanish"
-                    response = client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": prompt_text},
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {"url": f"data:image/png;base64,{base64_image}"},
-                                    },
-                                ],
-                            }
-                        ],
-                        max_tokens=500,
-                    )
-                    st.session_state.mi_respuesta = response.choices[0].message.content or ""
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
+if not api_key:
+    st.warning("Por favor ingresa tu API key.")
+elif analyze_button:
+    objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
+    if canvas_result is None or canvas_result.image_data is None or not objetos:
+        st.warning("🏎️ ¡Primero dibuja algo en la pista!")
+    else:
+        with st.spinner("🏎️ Calentando motores... escribiendo tu historia"):
+            try:
+                client = OpenAI(api_key=api_key)
+                base64_image = imagen_a_base64(canvas_result.image_data)
+                prompt_text = (
+                    "Mira este dibujo hecho a mano y escribe una historia corta, creativa y amena "
+                    "en español (máximo 3 párrafos) inspirada en lo que ves. Ponle un título."
+                )
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt_text},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+                                },
+                            ],
+                        }
+                    ],
+                    max_tokens=700,
+                )
+                st.session_state.mi_respuesta = response.choices[0].message.content or ""
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
 
-    if st.session_state.mi_respuesta:
-        with st.container(key="result_card"):
-            st.markdown('<div class="card-h">🏆 Resultado del análisis</div>', unsafe_allow_html=True)
-            st.markdown(st.session_state.mi_respuesta)
+if st.session_state.mi_respuesta:
+    with st.container(key="result_card"):
+        st.markdown('<div class="card-h">📖 Tu historia</div>', unsafe_allow_html=True)
+        st.markdown(st.session_state.mi_respuesta)
