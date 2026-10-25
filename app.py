@@ -45,6 +45,8 @@ CSS = """
   --asfalto: #2B2926;
   --rojo: #D62828;
   --tinta: #1F1308;
+  --vino: #6B1E2E;
+  --vino-oscuro: #4A1420;
 }
 
 .stApp { background: var(--crema); color: var(--tinta); font-family: 'Fredoka', 'Trebuchet MS', sans-serif; }
@@ -57,19 +59,23 @@ CSS = """
   padding-bottom: 200px !important;
 }
 
-/* ---------------- BARRA LATERAL ---------------- */
-[data-testid="stSidebar"][aria-expanded="true"] { width: 370px !important; min-width: 370px !important; }
-[data-testid="stSidebar"] { background: var(--amarillo) !important; border-right: 3px solid var(--tinta); }
+/* ---------------- BARRA LATERAL (vino tinto, textos blancos) ---------------- */
+[data-testid="stSidebar"][aria-expanded="true"] { width: 320px !important; min-width: 320px !important; }
+[data-testid="stSidebar"] { background: var(--vino) !important; border-right: 3px solid var(--tinta); }
 [data-testid="stSidebar"] > div:first-child { padding-bottom: 180px; }
-[data-testid="stSidebar"] label, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span { color: var(--tinta); font-family: 'Fredoka', sans-serif; }
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] label { color: #FFFFFF !important; font-family: 'Fredoka', sans-serif; font-weight: 500; }
+[data-testid="stSidebar"] [data-testid="stSliderTickBarMin"],
+[data-testid="stSidebar"] [data-testid="stSliderTickBarMax"],
+[data-testid="stSidebar"] [data-testid="stSliderThumbValue"] { color: #FFFFFF !important; }
 
 .side-card {
-  background: #FBEFC4; border: 2px solid var(--cafe); border-radius: 14px;
-  padding: 14px 16px; box-shadow: 3px 3px 0 var(--cafe); margin-bottom: 18px;
+  background: rgba(255,255,255,.10); border: 2px solid var(--boton); border-radius: 14px;
+  padding: 14px 16px; box-shadow: 3px 3px 0 var(--tinta); margin-bottom: 18px;
 }
-.side-card h3 { margin: 0 0 6px 0; font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: var(--cafe); letter-spacing: 1px; }
-.side-card p { margin: 0; color: var(--cafe) !important; font-weight: 500; line-height: 1.35; }
-.side-title { font-family: 'Racing Sans One', cursive; font-size: 1.25rem; color: var(--tinta); margin: 6px 0 4px; letter-spacing: 1px; }
+.side-card h3 { margin: 0 0 6px 0; font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: #FFE7A8; letter-spacing: 1px; }
+.side-card p { margin: 0; color: #FFFFFF !important; font-weight: 400; line-height: 1.4; }
+.side-title { font-family: 'Racing Sans One', cursive; font-size: 1.25rem; color: #FFFFFF; margin: 6px 0 4px; letter-spacing: 1px; }
 
 /* ---------------- BOTONES ---------------- */
 .stButton button {
@@ -82,9 +88,7 @@ CSS = """
 }
 .stButton button:hover { background: var(--hover) !important; transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--tinta) !important; }
 .stButton button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--tinta) !important; }
-[data-testid="stSidebar"] .stButton button { background: var(--asfalto) !important; }
-[data-testid="stSidebar"] .stButton button p { color: var(--boton) !important; font-size: 1.15rem !important; }
-[data-testid="stSidebar"] .stButton button:hover { background: #3a3733 !important; }
+[data-testid="stSidebar"] .stButton button p { font-size: 1.15rem !important; }
 .st-key-key_card .stButton button { animation: turbo 1.8s ease-in-out infinite; }
 @keyframes turbo {
   0%, 100% { box-shadow: 4px 4px 0 var(--tinta), 0 0 0 0 rgba(214,40,40,.0); }
@@ -96,7 +100,7 @@ CSS = """
   background: #FFFDF7 !important; border: 2px solid var(--tinta) !important; border-radius: 10px !important;
   color: var(--tinta) !important; font-family: 'Fredoka', sans-serif;
 }
-[data-testid="stTextInput"] label p { color: var(--cafe) !important; font-weight: 600; }
+[data-testid="stTextInput"] label p { color: #FFFFFF !important; font-weight: 500; }
 
 /* ---------------- PORTADA ---------------- */
 .race-hero {
@@ -144,36 +148,35 @@ CSS = """
 
 /* ---------------- TÍTULOS DE SECCIÓN ---------------- */
 .sec-title {
-  text-align: center; margin: 22px 0 4px; font-family: 'Racing Sans One', cursive;
+  text-align: left; margin: 4px 0 4px; font-family: 'Racing Sans One', cursive;
   font-size: 1.9rem; letter-spacing: 1.5px; color: var(--cafe);
 }
-.sec-sub { text-align: center; margin: 0 0 14px; color: #6E5A44; font-size: 1.05rem; font-weight: 500; }
+.sec-sub { text-align: left; margin: 0 0 14px; color: #6E5A44; font-size: 1.05rem; font-weight: 500; }
 
 /* ---------------- TABLERO (centrado) ---------------- */
 .st-key-canvas_card {
   background: #FFFDF7; border: 4px solid var(--tinta); border-radius: 16px; padding: 16px;
   box-shadow: 8px 8px 0 var(--tinta);
-  width: fit-content !important; max-width: 100%; margin-left: auto; margin-right: auto; align-items: center;
+  width: fit-content !important; max-width: 100%; margin-left: 0; margin-right: auto; align-items: center;
 }
 .st-key-canvas_card::before {
   content: ""; display: block; width: 100%; height: 14px; border-radius: 6px; margin-bottom: 6px;
   background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 28px 28px; border: 2px solid var(--tinta);
 }
-.stMain iframe { display: block; margin: 0 auto; max-width: 100%; }
+.stMain iframe { display: block; max-width: 100%; }
 
-/* ---------------- TARJETAS (llave y resultado) ---------------- */
+/* ---------------- TARJETAS DE ANÁLISIS (vino tinto, textos blancos) ---------------- */
 .st-key-key_card, .st-key-result_card {
-  background: #FBEFC4; border: 3px solid var(--tinta); border-radius: 16px; padding: 18px 20px;
-  box-shadow: 6px 6px 0 var(--tinta); max-width: 820px; width: 100%; margin: 22px auto 0;
+  background: var(--vino); border: 3px solid var(--tinta); border-radius: 16px; padding: 18px 20px;
+  box-shadow: 6px 6px 0 var(--tinta); width: 100%; margin: 0 0 20px 0;
 }
-.st-key-result_card { background: #FFFDF7; border-left: 12px solid var(--rojo); }
-.st-key-result_card p, .st-key-result_card li { color: var(--cafe) !important; font-size: 1.08rem; line-height: 1.5; }
-.card-h { font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: var(--cafe); letter-spacing: 1px; margin-bottom: 6px; }
+.st-key-result_card { background: var(--vino-oscuro); border-left: 12px solid var(--boton); }
+.st-key-result_card p, .st-key-result_card li, .st-key-result_card span { color: #FFFFFF !important; font-size: 1.08rem; line-height: 1.55; }
+.card-h { font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: #FFFFFF; letter-spacing: 1px; margin-bottom: 6px; }
 
-/* ---------------- FONDO: LÍNEAS DE VELOCIDAD + STICKERS ---------------- */
+/* ---------------- FONDO: LÍNEAS DE VELOCIDAD ---------------- */
 .bg-layer {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
-  background: rgba(70, 50, 30, .26);
 }
 .spd {
   position: absolute; left: 0; height: 3px; border-radius: 3px;
@@ -181,29 +184,6 @@ CSS = """
   animation: spdmove linear infinite;
 }
 @keyframes spdmove { from { transform: translateX(110vw); } to { transform: translateX(-520px); } }
-.stk {
-  position: absolute; width: var(--s); height: var(--s);
-  display: flex; align-items: center; justify-content: center;
-  font-size: calc(var(--s) * .55); background: #fff; border: 3px solid #fff; border-radius: 28%;
-  box-shadow: 0 0 0 2px rgba(45,42,38,.28), 3px 4px 8px rgba(0,0,0,.18);
-  opacity: .36; overflow: hidden; transform: rotate(var(--r));
-  animation: floaty var(--t) ease-in-out var(--d) infinite, glow calc(var(--t) * .8) ease-in-out var(--d) infinite;
-}
-.stk.txt { font-family: 'Racing Sans One', cursive; color: var(--cafe); font-size: calc(var(--s) * .42); }
-.stk::after {
-  content: ""; position: absolute; top: -60%; left: -120%; width: 55%; height: 220%;
-  background: linear-gradient(100deg, transparent, rgba(255,255,255,.6), transparent);
-  transform: rotate(20deg); animation: shine var(--t2) linear var(--d) infinite;
-}
-@keyframes floaty {
-  0%, 100% { transform: translateY(0) rotate(var(--r)) scale(1); }
-  50%      { transform: translateY(-12px) rotate(calc(var(--r) + 7deg)) scale(1.07); }
-}
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(45,42,38,.28), 3px 4px 8px rgba(0,0,0,.18); }
-  50%      { box-shadow: 0 0 0 2px rgba(244,196,48,.6), 0 0 12px 3px rgba(255,214,64,.45); }
-}
-@keyframes shine { 0% { left: -120%; } 55%, 100% { left: 170%; } }
 
 /* ---------------- CARRO DE CARRERAS (abajo de toda la interfaz) ---------------- */
 .race-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 130px; z-index: 99999; pointer-events: none; overflow: hidden; }
@@ -221,7 +201,7 @@ CSS = """
 }
 @keyframes kerbmove { to { background-position: -64px 0; } }
 
-.runner { position: absolute; bottom: 14px; left: 0; width: 340px; animation: drive 8s cubic-bezier(.45,.05,.55,.95) infinite; }
+.runner { position: absolute; bottom: 14px; left: 0; width: 340px; animation: drive 18s cubic-bezier(.45,.05,.55,.95) infinite; }
 @keyframes drive { 0% { transform: translateX(-400px); } 100% { transform: translateX(calc(100vw + 80px)); } }
 .runner svg { display: block; animation: bob .22s ease-in-out infinite alternate; overflow: visible; }
 @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
@@ -252,35 +232,18 @@ CSS = """
 st.markdown("<style>" + "\n".join(l for l in CSS.splitlines() if l.strip()) + "</style>", unsafe_allow_html=True)
 
 # =========================================================================
-# FONDO: líneas de velocidad + stickers de carreras
+# FONDO: líneas de velocidad (sin stickers)
 # =========================================================================
-STICKER_EMOJIS = ["🏎️", "🏁", "🛞", "⛽", "🏆", "🚦", "🔧", "🚗", "🏍️", "⚡", "🔥", "💨", "🏎️", "🏁"]
-STICKER_TEXTOS = ["P1", "7", "88", "GO!", "GP", "3", "F1"]
-
-
 def fondo_carreras():
+    """Solo líneas de velocidad suaves (sin stickers, para no saturar)."""
     rnd = random.Random(11)
     piezas = []
-    for _ in range(16):
+    for _ in range(12):
         piezas.append(
             f'<i class="spd" style="top:{rnd.uniform(2, 78):.1f}vh;width:{rnd.randint(140, 420)}px;'
-            f'animation-duration:{rnd.uniform(1.1, 3.0):.2f}s;animation-delay:-{rnd.uniform(0, 3):.2f}s;'
-            f'opacity:{rnd.uniform(.3, .6):.2f}"></i>'
+            f'animation-duration:{rnd.uniform(1.6, 3.4):.2f}s;animation-delay:-{rnd.uniform(0, 3):.2f}s;'
+            f'opacity:{rnd.uniform(.2, .4):.2f}"></i>'
         )
-    cols, rows = 8, 4
-    for r in range(rows):
-        for c in range(cols):
-            left = (c + rnd.uniform(0.05, 0.7)) / cols * 100
-            top = (r + rnd.uniform(0.05, 0.6)) / rows * 74  # sin tapar la pista de abajo
-            size = rnd.randint(46, 74)
-            es_texto = rnd.random() < 0.25
-            txt = rnd.choice(STICKER_TEXTOS if es_texto else STICKER_EMOJIS)
-            dur = rnd.uniform(4, 8)
-            piezas.append(
-                f'<div class="stk{" txt" if es_texto else ""}" style="left:{left:.1f}vw;top:{top:.1f}vh;'
-                f"--s:{size}px;--r:{rnd.randint(-18, 18)}deg;--t:{dur:.1f}s;--d:{rnd.uniform(0, 5):.1f}s;"
-                f'--t2:{dur * 0.9 + 2:.1f}s">{txt}</div>'
-            )
     return '<div class="bg-layer">' + "".join(piezas) + "</div>"
 
 
@@ -429,40 +392,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel y presiona el botón para analizarlo.</div>',
-    unsafe_allow_html=True,
-)
-
-# =========================================================================
-# TABLERO (canvas)
-# =========================================================================
-bg_color = "#FFFFFF"
-
-with st.container(key="canvas_card"):
-    canvas_result = st_canvas(
-        fill_color="rgba(240, 176, 60, 0.30)",
-        stroke_width=stroke_width,
-        stroke_color=stroke_color,
-        background_color=bg_color,
-        height=380,
-        width=700,
-        drawing_mode=drawing_mode,
-        key=f"canvas_{st.session_state.canvas_v}",
-    )
-
-# =========================================================================
-# CLAVE + BOTÓN DE ANÁLISIS
-# =========================================================================
-with st.container(key="key_card"):
-    st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
-    ke = st.text_input("Ingresa tu Clave", type="password", placeholder="sk-...")
-    analyze_button = st.button("🚀 ¡Analiza la imagen!", use_container_width=True)
-
-api_key = ke.strip() if ke else ""
-
-
 def imagen_a_base64(image_data) -> str:
     """Convierte el lienzo (RGBA) a PNG sobre fondo blanco y lo codifica en base64."""
     img = Image.fromarray(np.array(image_data).astype("uint8"), "RGBA")
@@ -473,42 +402,78 @@ def imagen_a_base64(image_data) -> str:
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
 
-if not api_key:
-    st.warning("Por favor ingresa tu API key.")
-elif analyze_button:
-    objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
-    if canvas_result is None or canvas_result.image_data is None or not objetos:
-        st.warning("🏎️ ¡Primero dibuja algo en la pista!")
-    else:
-        with st.spinner("🏎️ Calentando motores... analizando tu boceto"):
-            try:
-                client = OpenAI(api_key=api_key)
-                base64_image = imagen_a_base64(canvas_result.image_data)
-                prompt_text = "Describe the image in spanish"
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt_text},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {"url": f"data:image/png;base64,{base64_image}"},
-                                },
-                            ],
-                        }
-                    ],
-                    max_tokens=500,
-                )
-                st.session_state.mi_respuesta = response.choices[0].message.content or ""
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+# =========================================================================
+# LAYOUT: TABLERO A LA IZQUIERDA  |  ANÁLISIS A LA DERECHA
+# =========================================================================
+col_tablero, col_analisis = st.columns([3, 2], gap="medium")
 
-# =========================================================================
-# RESULTADO
-# =========================================================================
-if st.session_state.mi_respuesta:
-    with st.container(key="result_card"):
-        st.markdown('<div class="card-h">🏆 Resultado del análisis</div>', unsafe_allow_html=True)
-        st.markdown(st.session_state.mi_respuesta)
+# ------------------------------ TABLERO ----------------------------------
+with col_tablero:
+    st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel.</div>',
+        unsafe_allow_html=True,
+    )
+    with st.container(key="canvas_card"):
+        canvas_result = st_canvas(
+            fill_color="rgba(240, 176, 60, 0.30)",
+            stroke_width=stroke_width,
+            stroke_color=stroke_color,
+            background_color="#FFFFFF",
+            height=380,
+            width=540,
+            drawing_mode=drawing_mode,
+            key=f"canvas_{st.session_state.canvas_v}",
+        )
+
+# ------------------------------ ANÁLISIS ---------------------------------
+with col_analisis:
+    st.markdown('<div class="sec-title">⚡ Zona de análisis</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sec-sub">Ingresa tu clave y presiona el botón para analizar tu boceto.</div>',
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="key_card"):
+        st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
+        ke = st.text_input("Ingresa tu Clave", type="password", placeholder="sk-...")
+        analyze_button = st.button("🚀 ¡Analiza la imagen!", use_container_width=True)
+
+    api_key = ke.strip() if ke else ""
+
+    if not api_key:
+        st.warning("Por favor ingresa tu API key.")
+    elif analyze_button:
+        objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
+        if canvas_result is None or canvas_result.image_data is None or not objetos:
+            st.warning("🏎️ ¡Primero dibuja algo en la pista!")
+        else:
+            with st.spinner("🏎️ Calentando motores... analizando tu boceto"):
+                try:
+                    client = OpenAI(api_key=api_key)
+                    base64_image = imagen_a_base64(canvas_result.image_data)
+                    prompt_text = "Describe the image in spanish"
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt_text},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+                                    },
+                                ],
+                            }
+                        ],
+                        max_tokens=500,
+                    )
+                    st.session_state.mi_respuesta = response.choices[0].message.content or ""
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+
+    if st.session_state.mi_respuesta:
+        with st.container(key="result_card"):
+            st.markdown('<div class="card-h">🏆 Resultado del análisis</div>', unsafe_allow_html=True)
+            st.markdown(st.session_state.mi_respuesta)
