@@ -1,141 +1,514 @@
-import os
-import streamlit as st
 import base64
-from openai import OpenAI
-import openai
-#from PIL import Image
-import tensorflow as tf
-from PIL import Image, ImageOps
+import io
+import random
+
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+import openai  # noqa: F401  (se mantiene por compatibilidad con tu entorno)
 import streamlit as st
+from openai import OpenAI
+from PIL import Image
 from streamlit_drawable_canvas import st_canvas
 
-Expert=" "
-profile_imgenh=" "
-    
-def encode_image_to_base64(image_path):
-    try:
-        with open(image_path, "rb") as image_file:
-            encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-            return encoded_image
-    except FileNotFoundError:
-        return "Error: La imagen no se encontró en la ruta especificada."
-
-
-# Streamlit 
-st.set_page_config(page_title='Tablero Inteligente')
-st.title('Tablero Inteligente')
-with st.sidebar:
-    st.subheader("Acerca de:")
-    st.subheader("En esta aplicación veremos la capacidad que ahora tiene una máquina de interpretar un boceto")
-st.subheader("Dibuja el boceto en el panel  y presiona el botón para analizarla")
-
-# Add canvas component
-#bg_image = st.sidebar.file_uploader("Cargar Imagen:", type=["png", "jpg"])
-# Specify canvas parameters in application
-drawing_mode = "freedraw"
-stroke_width = st.sidebar.slider('Selecciona el ancho de línea', 1, 30, 5)
-#stroke_color = '#FFFFFF' # Set background color to white
-#bg_color = '#000000'
-stroke_color = "#000000" 
-bg_color = '#FFFFFF'
-#realtime_update = st.sidebar.checkbox("Update in realtime", True)
-
-
-# Create a canvas component
-canvas_result = st_canvas(
-    fill_color="rgba(255, 165, 0, 0.3)",  # Fixed fill color with some opacity
-    stroke_width=stroke_width,
-    stroke_color=stroke_color,
-    background_color=bg_color,
-    height=300,
-    width=400,
-    #background_image= None #Image.open(bg_image) if bg_image else None,
-    drawing_mode=drawing_mode,
-    key="canvas",
+# =========================================================================
+# CONFIGURACIÓN DE PÁGINA
+# =========================================================================
+st.set_page_config(
+    page_title="Tablero Inteligente | Racing Edition",
+    page_icon="🏎️",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-ke = st.text_input('Ingresa tu Clave')
-#os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
-os.environ['OPENAI_API_KEY'] = ke
+if "canvas_v" not in st.session_state:
+    st.session_state.canvas_v = 0
+if "mi_respuesta" not in st.session_state:
+    st.session_state.mi_respuesta = ""
 
 
-# Retrieve the OpenAI API Key from secrets
-api_key = os.environ['OPENAI_API_KEY']
+def flat(html: str) -> str:
+    """Aplana el HTML en una sola línea (evita que Markdown lo interprete como código)."""
+    return "".join(line.strip() for line in html.splitlines())
 
-# Initialize the OpenAI client with the API key
-client = OpenAI(api_key=api_key)
 
-analyze_button = st.button("Analiza la imagen", type="secondary")
+# =========================================================================
+# CSS: crema + amarillo cromo + café + asfalto y rojo de carrera
+# =========================================================================
+CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Racing+Sans+One&display=swap');
 
-# Check if an image has been uploaded, if the API key is available, and if the button has been pressed
-if canvas_result.image_data is not None and api_key and analyze_button:
+:root {
+  --cafe: #3B2108;
+  --crema: #F7F4EA;
+  --amarillo: #E9C46A;
+  --boton: #F0B03C;
+  --hover: #F7C867;
+  --asfalto: #2B2926;
+  --rojo: #D62828;
+  --tinta: #1F1308;
+}
 
-    with st.spinner("Analizando ..."):
-        # Encode the image
-        input_numpy_array = np.array(canvas_result.image_data)
-        input_image = Image.fromarray(input_numpy_array.astype('uint8'),'RGBA')
-        input_image.save('img.png')
-        
-      # Codificar la imagen en base64
- 
-        base64_image = encode_image_to_base64("img.png")
-            
-        prompt_text = (f"Describe the image in spanish")
-    
-      # Create the payload for the completion request
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt_text},
-                    {
-                        "type": "image_url",
-                        "image_url":f"data:image/png;base64,{base64_image}",
-                    },
-                ],
-            }
-        ]
-    
-        # Make the request to the OpenAI API
-        try:
-            full_response = ""
-            message_placeholder = st.empty()
-            response = openai.chat.completions.create(
-              model= "gpt-4o-mini",  #o1-preview ,gpt-4o-mini
-              messages=[
-                {
-                   "role": "user",
-                   "content": [
-                     {"type": "text", "text": prompt_text},
-                     {
-                       "type": "image_url",
-                       "image_url": {
-                         "url": f"data:image/png;base64,{base64_image}",
-                       },
-                     },
-                   ],
-                  }
-                ],
-              max_tokens=500,
-              )
-            #response.choices[0].message.content
-            if response.choices[0].message.content is not None:
-                    full_response += response.choices[0].message.content
-                    message_placeholder.markdown(full_response + "▌")
-            # Final update to placeholder after the stream ends
-            message_placeholder.markdown(full_response)
-            if Expert== profile_imgenh:
-               st.session_state.mi_respuesta= response.choices[0].message.content #full_response 
-    
-            # Display the response in the app
-            #st.write(response.choices[0])
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-else:
-    # Warnings for user action required
+.stApp { background: var(--crema); color: var(--tinta); font-family: 'Fredoka', 'Trebuchet MS', sans-serif; }
+[data-testid="stHeader"] { background: transparent; }
 
-    if not api_key:
-        st.warning("Por favor ingresa tu API key.")
+/* Espacio abajo para que el carro no tape el contenido */
+.block-container, [data-testid="stMainBlockContainer"] {
+  position: relative; z-index: 0;
+  padding-top: 2rem !important;
+  padding-bottom: 200px !important;
+}
+
+/* ---------------- BARRA LATERAL ---------------- */
+[data-testid="stSidebar"][aria-expanded="true"] { width: 370px !important; min-width: 370px !important; }
+[data-testid="stSidebar"] { background: var(--amarillo) !important; border-right: 3px solid var(--tinta); }
+[data-testid="stSidebar"] > div:first-child { padding-bottom: 180px; }
+[data-testid="stSidebar"] label, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span { color: var(--tinta); font-family: 'Fredoka', sans-serif; }
+
+.side-card {
+  background: #FBEFC4; border: 2px solid var(--cafe); border-radius: 14px;
+  padding: 14px 16px; box-shadow: 3px 3px 0 var(--cafe); margin-bottom: 18px;
+}
+.side-card h3 { margin: 0 0 6px 0; font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: var(--cafe); letter-spacing: 1px; }
+.side-card p { margin: 0; color: var(--cafe) !important; font-weight: 500; line-height: 1.35; }
+.side-title { font-family: 'Racing Sans One', cursive; font-size: 1.25rem; color: var(--tinta); margin: 6px 0 4px; letter-spacing: 1px; }
+
+/* ---------------- BOTONES ---------------- */
+.stButton button {
+  background: var(--boton) !important; border: 3px solid var(--tinta) !important; border-radius: 14px !important;
+  box-shadow: 4px 4px 0 var(--tinta) !important; transition: all .1s ease !important; padding: .55rem 1rem !important;
+}
+.stButton button p {
+  color: var(--cafe) !important; font-family: 'Racing Sans One', cursive !important;
+  font-size: 1.3rem !important; letter-spacing: 1px; font-weight: 400 !important;
+}
+.stButton button:hover { background: var(--hover) !important; transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--tinta) !important; }
+.stButton button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--tinta) !important; }
+[data-testid="stSidebar"] .stButton button { background: var(--asfalto) !important; }
+[data-testid="stSidebar"] .stButton button p { color: var(--boton) !important; font-size: 1.15rem !important; }
+[data-testid="stSidebar"] .stButton button:hover { background: #3a3733 !important; }
+.st-key-key_card .stButton button { animation: turbo 1.8s ease-in-out infinite; }
+@keyframes turbo {
+  0%, 100% { box-shadow: 4px 4px 0 var(--tinta), 0 0 0 0 rgba(214,40,40,.0); }
+  50%      { box-shadow: 4px 4px 0 var(--tinta), 0 0 18px 4px rgba(240,176,60,.75); }
+}
+
+/* Inputs */
+[data-testid="stTextInput"] input {
+  background: #FFFDF7 !important; border: 2px solid var(--tinta) !important; border-radius: 10px !important;
+  color: var(--tinta) !important; font-family: 'Fredoka', sans-serif;
+}
+[data-testid="stTextInput"] label p { color: var(--cafe) !important; font-weight: 600; }
+
+/* ---------------- PORTADA ---------------- */
+.race-hero {
+  position: relative; overflow: hidden; text-align: center;
+  background: linear-gradient(135deg, #2B2926 0%, #1F1308 100%);
+  border: 3px solid var(--tinta); border-radius: 18px;
+  padding: 44px 30px 34px; margin-bottom: 26px;
+  box-shadow: 7px 7px 0 var(--amarillo);
+}
+.race-hero::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -140px; width: calc(100% + 280px);
+  background: repeating-linear-gradient(90deg, transparent 0 60px, rgba(240,176,60,.13) 60px 72px, transparent 72px 140px);
+  transform: skewX(-25deg); animation: stripes 1.4s linear infinite;
+}
+@keyframes stripes { to { transform: skewX(-25deg) translateX(140px); } }
+.race-hero .checker {
+  position: absolute; left: 0; right: 0; height: 18px;
+  background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 36px 36px;
+  animation: checkmove 1.1s linear infinite;
+}
+.race-hero .checker.top { top: 0; }
+.race-hero .checker.bottom { bottom: 0; animation-direction: reverse; }
+@keyframes checkmove { to { background-position: 36px 0; } }
+
+.race-hero h1 {
+  position: relative; display: inline-block; margin: 0;
+  font-family: 'Racing Sans One', cursive; font-weight: 400;
+  font-size: 4.2rem; line-height: 1.15; letter-spacing: 2px; text-transform: uppercase;
+  transform: skewX(-8deg);
+  background: linear-gradient(90deg, #FFF6E0, #F8DE95, #F0B03C, #FFE7A8, #F3E3C3, #FFF6E0);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 0 10px rgba(240,176,60,.45));
+  animation: titleflow 5s linear infinite;
+}
+@keyframes titleflow { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+.race-hero .sub { position: relative; margin: 8px 0 0; color: #FFF8E1; font-size: 1.2rem; font-weight: 500; }
+.race-hero .chips { position: relative; margin-top: 10px; }
+.race-hero .chips span {
+  display: inline-block; margin: 8px 6px 0; padding: 6px 16px; border-radius: 999px;
+  background: var(--boton); color: var(--cafe); font-weight: 700; border: 2px solid #FFF6E0;
+  box-shadow: 0 0 12px rgba(240,176,60,.5);
+}
+
+/* ---------------- TÍTULOS DE SECCIÓN ---------------- */
+.sec-title {
+  text-align: center; margin: 22px 0 4px; font-family: 'Racing Sans One', cursive;
+  font-size: 1.9rem; letter-spacing: 1.5px; color: var(--cafe);
+}
+.sec-sub { text-align: center; margin: 0 0 14px; color: #6E5A44; font-size: 1.05rem; font-weight: 500; }
+
+/* ---------------- TABLERO (centrado) ---------------- */
+.st-key-canvas_card {
+  background: #FFFDF7; border: 4px solid var(--tinta); border-radius: 16px; padding: 16px;
+  box-shadow: 8px 8px 0 var(--tinta);
+  width: fit-content !important; max-width: 100%; margin-left: auto; margin-right: auto; align-items: center;
+}
+.st-key-canvas_card::before {
+  content: ""; display: block; width: 100%; height: 14px; border-radius: 6px; margin-bottom: 6px;
+  background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 28px 28px; border: 2px solid var(--tinta);
+}
+.stMain iframe { display: block; margin: 0 auto; max-width: 100%; }
+
+/* ---------------- TARJETAS (llave y resultado) ---------------- */
+.st-key-key_card, .st-key-result_card {
+  background: #FBEFC4; border: 3px solid var(--tinta); border-radius: 16px; padding: 18px 20px;
+  box-shadow: 6px 6px 0 var(--tinta); max-width: 820px; width: 100%; margin: 22px auto 0;
+}
+.st-key-result_card { background: #FFFDF7; border-left: 12px solid var(--rojo); }
+.st-key-result_card p, .st-key-result_card li { color: var(--cafe) !important; font-size: 1.08rem; line-height: 1.5; }
+.card-h { font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: var(--cafe); letter-spacing: 1px; margin-bottom: 6px; }
+
+/* ---------------- FONDO: LÍNEAS DE VELOCIDAD + STICKERS ---------------- */
+.bg-layer {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  background: rgba(70, 50, 30, .26);
+}
+.spd {
+  position: absolute; left: 0; height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, transparent, rgba(59,33,8,.45), transparent);
+  animation: spdmove linear infinite;
+}
+@keyframes spdmove { from { transform: translateX(110vw); } to { transform: translateX(-520px); } }
+.stk {
+  position: absolute; width: var(--s); height: var(--s);
+  display: flex; align-items: center; justify-content: center;
+  font-size: calc(var(--s) * .55); background: #fff; border: 3px solid #fff; border-radius: 28%;
+  box-shadow: 0 0 0 2px rgba(45,42,38,.28), 3px 4px 8px rgba(0,0,0,.18);
+  opacity: .36; overflow: hidden; transform: rotate(var(--r));
+  animation: floaty var(--t) ease-in-out var(--d) infinite, glow calc(var(--t) * .8) ease-in-out var(--d) infinite;
+}
+.stk.txt { font-family: 'Racing Sans One', cursive; color: var(--cafe); font-size: calc(var(--s) * .42); }
+.stk::after {
+  content: ""; position: absolute; top: -60%; left: -120%; width: 55%; height: 220%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.6), transparent);
+  transform: rotate(20deg); animation: shine var(--t2) linear var(--d) infinite;
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0) rotate(var(--r)) scale(1); }
+  50%      { transform: translateY(-12px) rotate(calc(var(--r) + 7deg)) scale(1.07); }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(45,42,38,.28), 3px 4px 8px rgba(0,0,0,.18); }
+  50%      { box-shadow: 0 0 0 2px rgba(244,196,48,.6), 0 0 12px 3px rgba(255,214,64,.45); }
+}
+@keyframes shine { 0% { left: -120%; } 55%, 100% { left: 170%; } }
+
+/* ---------------- CARRO DE CARRERAS (abajo de toda la interfaz) ---------------- */
+.race-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 130px; z-index: 99999; pointer-events: none; overflow: hidden; }
+.race-bar .road { position: absolute; left: 0; right: 0; bottom: 0; height: 50px; background: var(--asfalto); border-top: 4px solid var(--tinta); }
+.race-bar .road::before {
+  content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 3px); height: 6px;
+  background: repeating-linear-gradient(90deg, #F0B03C 0 44px, transparent 44px 96px); background-size: 96px 6px;
+  animation: roadmove .28s linear infinite;
+}
+@keyframes roadmove { to { background-position: -96px 0; } }
+.race-bar .kerb {
+  position: absolute; left: 0; right: 0; bottom: 50px; height: 10px;
+  background: repeating-linear-gradient(90deg, #D62828 0 32px, #FFF 32px 64px); background-size: 64px 10px;
+  border-top: 2px solid var(--tinta); animation: kerbmove .24s linear infinite;
+}
+@keyframes kerbmove { to { background-position: -64px 0; } }
+
+.runner { position: absolute; bottom: 14px; left: 0; width: 340px; animation: drive 8s cubic-bezier(.45,.05,.55,.95) infinite; }
+@keyframes drive { 0% { transform: translateX(-400px); } 100% { transform: translateX(calc(100vw + 80px)); } }
+.runner svg { display: block; animation: bob .22s ease-in-out infinite alternate; overflow: visible; }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+
+.streaks i {
+  position: absolute; left: -260px; width: 260px; height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, transparent, rgba(240,176,60,.95));
+  transform-origin: right center; animation: streak .35s linear infinite;
+}
+.streaks i:nth-child(1) { top: 26px; animation-delay: 0s; }
+.streaks i:nth-child(2) { top: 40px; animation-delay: -.12s; width: 200px; left: -200px; }
+.streaks i:nth-child(3) { top: 54px; animation-delay: -.22s; }
+.streaks i:nth-child(4) { top: 66px; animation-delay: -.05s; width: 160px; left: -160px; }
+@keyframes streak { 0% { transform: scaleX(.4); opacity: .2; } 50% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(.6); opacity: .1; } }
+
+.wheel { transform-box: fill-box; transform-origin: center; animation: spin .22s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.flame { transform-box: fill-box; transform-origin: 100% 50%; animation: flick .09s ease-in-out infinite alternate; }
+.flame.f2 { animation-duration: .07s; animation-delay: -.03s; }
+.flame.f3 { animation-duration: .05s; }
+@keyframes flick { from { transform: scale(.76, .88); } to { transform: scale(1.14, 1.1); } }
+.spark { animation: spark .5s linear infinite; }
+.spark.s2 { animation-delay: -.17s; }
+.spark.s3 { animation-delay: -.33s; }
+@keyframes spark { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(-55px); opacity: 0; } }
+"""
+
+st.markdown("<style>" + "\n".join(l for l in CSS.splitlines() if l.strip()) + "</style>", unsafe_allow_html=True)
+
+# =========================================================================
+# FONDO: líneas de velocidad + stickers de carreras
+# =========================================================================
+STICKER_EMOJIS = ["🏎️", "🏁", "🛞", "⛽", "🏆", "🚦", "🔧", "🚗", "🏍️", "⚡", "🔥", "💨", "🏎️", "🏁"]
+STICKER_TEXTOS = ["P1", "7", "88", "GO!", "GP", "3", "F1"]
+
+
+def fondo_carreras():
+    rnd = random.Random(11)
+    piezas = []
+    for _ in range(16):
+        piezas.append(
+            f'<i class="spd" style="top:{rnd.uniform(2, 78):.1f}vh;width:{rnd.randint(140, 420)}px;'
+            f'animation-duration:{rnd.uniform(1.1, 3.0):.2f}s;animation-delay:-{rnd.uniform(0, 3):.2f}s;'
+            f'opacity:{rnd.uniform(.3, .6):.2f}"></i>'
+        )
+    cols, rows = 8, 4
+    for r in range(rows):
+        for c in range(cols):
+            left = (c + rnd.uniform(0.05, 0.7)) / cols * 100
+            top = (r + rnd.uniform(0.05, 0.6)) / rows * 74  # sin tapar la pista de abajo
+            size = rnd.randint(46, 74)
+            es_texto = rnd.random() < 0.25
+            txt = rnd.choice(STICKER_TEXTOS if es_texto else STICKER_EMOJIS)
+            dur = rnd.uniform(4, 8)
+            piezas.append(
+                f'<div class="stk{" txt" if es_texto else ""}" style="left:{left:.1f}vw;top:{top:.1f}vh;'
+                f"--s:{size}px;--r:{rnd.randint(-18, 18)}deg;--t:{dur:.1f}s;--d:{rnd.uniform(0, 5):.1f}s;"
+                f'--t2:{dur * 0.9 + 2:.1f}s">{txt}</div>'
+            )
+    return '<div class="bg-layer">' + "".join(piezas) + "</div>"
+
+
+st.markdown(fondo_carreras(), unsafe_allow_html=True)
+
+# =========================================================================
+# CARRO DE CARRERAS ANIMADO (SVG) con llamas, chispas y líneas de velocidad
+# =========================================================================
+CAR_SVG = flat(
+    """
+<svg viewBox="-90 0 380 90" width="340" height="81" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF5A5A"/><stop offset=".55" stop-color="#D62828"/><stop offset="1" stop-color="#8F0F1A"/>
+    </linearGradient>
+    <linearGradient id="gFlame1" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#FFC107"/><stop offset=".45" stop-color="#FF5A00"/><stop offset="1" stop-color="#E52E00" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="gFlame2" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#FFF3B0"/><stop offset=".5" stop-color="#FFC107"/><stop offset="1" stop-color="#FF8A00" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="gBeam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFF3B0" stop-opacity=".75"/><stop offset="1" stop-color="#FFF3B0" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="gRim"><stop offset="0" stop-color="#FAFAFA"/><stop offset="1" stop-color="#8E8E8E"/></radialGradient>
+  </defs>
+
+  <ellipse cx="112" cy="77" rx="112" ry="4" fill="rgba(0,0,0,.35)"/>
+
+  <!-- Llamas traseras -->
+  <g>
+    <path class="flame f1" d="M10 47 Q-18 36 -48 49 Q-78 53 -90 53 Q-78 56 -48 59 Q-18 70 10 59 Z" fill="url(#gFlame1)"/>
+    <path class="flame f2" d="M10 49 Q-10 43 -32 51 Q-52 53 -60 53 Q-52 54 -32 56 Q-10 63 10 57 Z" fill="url(#gFlame2)"/>
+    <path class="flame f3" d="M10 51 Q-2 49 -16 53 Q-2 57 10 55 Z" fill="#FFFFFF"/>
+    <circle class="spark" cx="-20" cy="48" r="2.4" fill="#FFD54A"/>
+    <circle class="spark s2" cx="-30" cy="58" r="2" fill="#FF9A1F"/>
+    <circle class="spark s3" cx="-14" cy="53" r="1.8" fill="#FFF3B0"/>
+  </g>
+
+  <!-- Faros -->
+  <polygon points="212,45 285,30 285,64 212,50" fill="url(#gBeam)"/>
+
+  <!-- Alerón y escape -->
+  <rect x="5" y="50" width="9" height="6" rx="2" fill="#8a8a8a"/>
+  <polygon points="4,28 40,28 40,33 31,33 29,43 24,43 22,33 4,33" fill="#1F1308"/>
+
+  <!-- Carrocería -->
+  <path d="M12 54 C12 46 20 42 34 40 L62 36 C78 22 98 16 124 16 C146 16 160 24 170 34 L196 38 C208 40 214 46 214 54 L214 58 L12 58 Z" fill="url(#gBody)" stroke="#1F1308" stroke-width="2"/>
+  <path d="M80 35 C90 25 104 21 120 21 C136 21 146 27 152 35 Z" fill="#BFE9FF" stroke="#1F1308" stroke-width="1.5"/>
+  <line x1="117" y1="21" x2="117" y2="35" stroke="#1F1308" stroke-width="1.5"/>
+  <path d="M66 37 C82 24 100 19 124 19" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="2" fill="none"/>
+  <line x1="22" y1="52" x2="208" y2="52" stroke="#F0B03C" stroke-width="3.5"/>
+  <circle cx="102" cy="44" r="6.5" fill="#fff" stroke="#1F1308" stroke-width="1"/>
+  <text x="102" y="48" font-size="10" font-weight="800" text-anchor="middle" fill="#1F1308" font-family="Arial Black, Arial, sans-serif">7</text>
+  <ellipse cx="209" cy="47" rx="5" ry="3" fill="#FFE066"/>
+
+  <!-- Ruedas -->
+  <g transform="translate(50 58)">
+    <circle r="17" fill="#0d0d0d"/><circle r="15" fill="#1b1b1b" stroke="#000" stroke-width="2"/>
+    <g class="wheel">
+      <circle r="9" fill="url(#gRim)"/>
+      <line x1="-9" y1="0" x2="9" y2="0" stroke="#555" stroke-width="2"/>
+      <line x1="-4.5" y1="-7.8" x2="4.5" y2="7.8" stroke="#555" stroke-width="2"/>
+      <line x1="4.5" y1="-7.8" x2="-4.5" y2="7.8" stroke="#555" stroke-width="2"/>
+      <circle r="2.5" fill="#333"/>
+    </g>
+  </g>
+  <g transform="translate(170 58)">
+    <circle r="17" fill="#0d0d0d"/><circle r="15" fill="#1b1b1b" stroke="#000" stroke-width="2"/>
+    <g class="wheel">
+      <circle r="9" fill="url(#gRim)"/>
+      <line x1="-9" y1="0" x2="9" y2="0" stroke="#555" stroke-width="2"/>
+      <line x1="-4.5" y1="-7.8" x2="4.5" y2="7.8" stroke="#555" stroke-width="2"/>
+      <line x1="4.5" y1="-7.8" x2="-4.5" y2="7.8" stroke="#555" stroke-width="2"/>
+      <circle r="2.5" fill="#333"/>
+    </g>
+  </g>
+</svg>
+"""
+)
+
+st.markdown(
+    flat(
+        f"""
+<div class="race-bar">
+  <div class="kerb"></div>
+  <div class="road"></div>
+  <div class="runner">
+    <div class="streaks"><i></i><i></i><i></i><i></i></div>
+    {CAR_SVG}
+  </div>
+</div>
+"""
+    ),
+    unsafe_allow_html=True,
+)
+
+# =========================================================================
+# BARRA LATERAL
+# =========================================================================
+with st.sidebar:
+    st.markdown(
+        flat(
+            """
+<div class="side-card">
+  <h3>🏁 Acerca de</h3>
+  <p>En esta aplicación veremos la capacidad que ahora tiene una máquina de interpretar un boceto.
+  Dibuja carros, bólidos o pistas y deja que la IA los analice.</p>
+</div>
+"""
+        ),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="side-title">🛠️ Ajustes de pista</div>', unsafe_allow_html=True)
+    stroke_width = st.slider("Ancho de línea", 1, 30, 5)
+    stroke_color = st.color_picker("Color del trazo", "#000000")
+    herramientas = {
+        "✏️ Pincel libre": "freedraw",
+        "📏 Línea recta": "line",
+        "▭ Rectángulo": "rect",
+        "⭕ Círculo": "circle",
+        "✋ Mover figuras": "transform",
+    }
+    drawing_mode = herramientas[st.selectbox("Herramienta", list(herramientas.keys()))]
+
+    if st.button("🗑️ Limpiar pista", use_container_width=True):
+        st.session_state.canvas_v += 1
+        st.rerun()
+
+# =========================================================================
+# PORTADA
+# =========================================================================
+st.markdown(
+    flat(
+        """
+<div class="race-hero">
+  <div class="checker top"></div>
+  <h1>Tablero Inteligente</h1>
+  <p class="sub">🏎️ Dibuja carros, bólidos y circuitos de carreras, y mira cómo la máquina interpreta tu boceto.</p>
+  <div class="chips"><span>🏁 1. Dibuja</span><span>⚡ 2. Analiza</span><span>🏆 3. Descubre</span></div>
+  <div class="checker bottom"></div>
+</div>
+"""
+    ),
+    unsafe_allow_html=True,
+)
+
+st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel y presiona el botón para analizarlo.</div>',
+    unsafe_allow_html=True,
+)
+
+# =========================================================================
+# TABLERO (canvas)
+# =========================================================================
+bg_color = "#FFFFFF"
+
+with st.container(key="canvas_card"):
+    canvas_result = st_canvas(
+        fill_color="rgba(240, 176, 60, 0.30)",
+        stroke_width=stroke_width,
+        stroke_color=stroke_color,
+        background_color=bg_color,
+        height=380,
+        width=700,
+        drawing_mode=drawing_mode,
+        key=f"canvas_{st.session_state.canvas_v}",
+    )
+
+# =========================================================================
+# CLAVE + BOTÓN DE ANÁLISIS
+# =========================================================================
+with st.container(key="key_card"):
+    st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
+    ke = st.text_input("Ingresa tu Clave", type="password", placeholder="sk-...")
+    analyze_button = st.button("🚀 ¡Analiza la imagen!", use_container_width=True)
+
+api_key = ke.strip() if ke else ""
+
+
+def imagen_a_base64(image_data) -> str:
+    """Convierte el lienzo (RGBA) a PNG sobre fondo blanco y lo codifica en base64."""
+    img = Image.fromarray(np.array(image_data).astype("uint8"), "RGBA")
+    fondo = Image.new("RGBA", img.size, (255, 255, 255, 255))
+    fondo.alpha_composite(img)
+    buf = io.BytesIO()
+    fondo.convert("RGB").save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode("utf-8")
+
+
+if not api_key:
+    st.warning("Por favor ingresa tu API key.")
+elif analyze_button:
+    objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
+    if canvas_result is None or canvas_result.image_data is None or not objetos:
+        st.warning("🏎️ ¡Primero dibuja algo en la pista!")
+    else:
+        with st.spinner("🏎️ Calentando motores... analizando tu boceto"):
+            try:
+                client = OpenAI(api_key=api_key)
+                base64_image = imagen_a_base64(canvas_result.image_data)
+                prompt_text = "Describe the image in spanish"
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt_text},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+                                },
+                            ],
+                        }
+                    ],
+                    max_tokens=500,
+                )
+                st.session_state.mi_respuesta = response.choices[0].message.content or ""
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
+
+# =========================================================================
+# RESULTADO
+# =========================================================================
+if st.session_state.mi_respuesta:
+    with st.container(key="result_card"):
+        st.markdown('<div class="card-h">🏆 Resultado del análisis</div>', unsafe_allow_html=True)
+        st.markdown(st.session_state.mi_respuesta)
