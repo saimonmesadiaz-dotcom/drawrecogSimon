@@ -50,9 +50,9 @@ PALETAS = {
 }
 
 TABLEROS = {
-    "Panorámico (960×300)": (960, 300),
-    "Extra panorámico (1080×280)": (1080, 280),
-    "Compacto (760×300)": (760, 300),
+    "Panorámico (700×330)": (700, 330),
+    "Extra ancho (820×330)": (820, 330),
+    "Compacto (600×330)": (600, 330),
 }
 
 CSS = """
@@ -114,6 +114,7 @@ CSS = """
 .stButton button:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--tinta) !important; }
 [data-testid="stSidebar"] .stButton button p { font-size: 1.15rem !important; }
 .st-key-key_card .stButton button { animation: turbo 1.8s ease-in-out infinite; }
+.st-key-key_card .stButton button p { font-size: 1.05rem !important; }
 @keyframes turbo {
   0%, 100% { box-shadow: 4px 4px 0 var(--tinta), 0 0 0 0 rgba(214,40,40,.0); }
   50%      { box-shadow: 4px 4px 0 var(--tinta), 0 0 18px 4px rgba(240,176,60,.75); }
@@ -149,7 +150,7 @@ CSS = """
 /* ---------------- TÍTULOS DE SECCIÓN ---------------- */
 .sec-title {
   text-align: center; margin: 14px 0 2px; font-family: 'Racing Sans One', cursive;
-  font-size: 1.6rem; letter-spacing: 1.5px; color: var(--cafe);
+  font-size: 1.45rem; letter-spacing: 1.5px; color: var(--cafe);
 }
 .sec-sub { text-align: center; margin: 0 0 12px; color: #6E5A44; font-size: 1.05rem; font-weight: 500; }
 
@@ -157,7 +158,7 @@ CSS = """
 .st-key-canvas_card {
   background: #FFFDF7; border: 4px solid var(--tinta); border-radius: 16px; padding: 12px;
   box-shadow: 8px 8px 0 var(--tinta);
-  width: fit-content !important; max-width: 100%; margin-left: auto; margin-right: auto; align-items: center;
+  max-width: 100%; margin-left: auto; margin-right: auto; align-items: center;
 }
 .st-key-canvas_card::before {
   content: ""; display: block; width: 100%; height: 14px; border-radius: 6px; margin-bottom: 6px;
@@ -168,9 +169,9 @@ CSS = """
 /* ---------------- TARJETAS DE ANÁLISIS (vino tinto, textos blancos) ---------------- */
 .st-key-key_card, .st-key-result_card {
   background: var(--vino); border: 3px solid var(--tinta); border-radius: 16px; padding: 18px 20px;
-  box-shadow: 6px 6px 0 var(--tinta); width: 100%; max-width: 100%; margin: 16px auto 0 auto;
+  box-shadow: 6px 6px 0 var(--tinta); width: 100%; max-width: 100%; margin: 0 0 16px 0;
 }
-.st-key-result_card { background: var(--vino-oscuro); border-left: 12px solid var(--boton); }
+.st-key-result_card { background: var(--vino-oscuro); border-left: 12px solid var(--boton); max-height: 460px; overflow-y: auto; }
 .st-key-result_card p, .st-key-result_card li, .st-key-result_card span { color: #FFFFFF !important; font-size: 1.08rem; line-height: 1.55; }
 .card-h { font-family: 'Racing Sans One', cursive; font-size: 1.5rem; color: #FFFFFF; letter-spacing: 1px; margin-bottom: 6px; }
 
@@ -445,86 +446,86 @@ def imagen_a_base64(image_data) -> str:
 
 
 # =========================================================================
-# TABLERO ANCHO Y CENTRADO
+# LAYOUT: TABLERO LARGO (izquierda/centro)  |  CLAVE + HISTORIA (extremo derecho)
 # =========================================================================
-st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel.</div>',
+    f"<style>.st-key-canvas_card {{ width: {canvas_w + 32}px !important; }}</style>",
     unsafe_allow_html=True,
 )
 
-st.markdown(
-    f"<style>.st-key-key_card, .st-key-result_card {{ max-width: {canvas_w + 32}px; }}</style>",
-    unsafe_allow_html=True,
-)
+col_tablero, col_analisis = st.columns([3, 1], gap="medium")
 
-with st.container(key="canvas_card"):
-    canvas_result = st_canvas(
-        fill_color="rgba(240, 176, 60, 0.30)",
-        stroke_width=stroke_width,
-        stroke_color=stroke_color,
-        background_color="#FFFFFF",
-        height=canvas_h,
-        width=canvas_w,
-        drawing_mode=drawing_mode,
-        key=f"canvas_{st.session_state.canvas_v}_{canvas_w}_{canvas_h}",
+# ------------------------------ TABLERO ----------------------------------
+with col_tablero:
+    st.markdown('<div class="sec-title">🏁 Pista de dibujo</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sec-sub">Dibuja el boceto de tu carro (o lo que quieras) en el panel.</div>',
+        unsafe_allow_html=True,
+    )
+    with st.container(key="canvas_card"):
+        canvas_result = st_canvas(
+            fill_color="rgba(240, 176, 60, 0.30)",
+            stroke_width=stroke_width,
+            stroke_color=stroke_color,
+            background_color="#FFFFFF",
+            height=canvas_h,
+            width=canvas_w,
+            drawing_mode=drawing_mode,
+            display_toolbar=False,  # usamos nuestro botón "Limpiar pista"
+            key=f"canvas_{st.session_state.canvas_v}_{canvas_w}_{canvas_h}",
+        )
+
+# ------------------------- CLAVE + HISTORIA (derecha) ---------------------
+with col_analisis:
+    st.markdown('<div class="sec-title">⚡ Zona de análisis</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sec-sub">Haz tu dibujo y la IA creará una historia a partir de esto.</div>',
+        unsafe_allow_html=True,
     )
 
-# =========================================================================
-# ZONA DE ANÁLISIS (abajo)
-# =========================================================================
-st.markdown('<div class="sec-title">⚡ Zona de análisis</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="sec-sub">Haz tu dibujo y la IA creará una historia a partir de esto.</div>',
-    unsafe_allow_html=True,
-)
-
-with st.container(key="key_card"):
-    st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
-    c_key, c_btn = st.columns([3, 2], vertical_alignment="bottom")
-    with c_key:
+    with st.container(key="key_card"):
+        st.markdown('<div class="card-h">🔑 Llave de encendido</div>', unsafe_allow_html=True)
         ke = st.text_input("Ingresa tu Clave", type="password", placeholder="sk-...")
-    with c_btn:
         analyze_button = st.button("🚀 ¡Crear mi historia!", use_container_width=True)
 
-api_key = ke.strip() if ke else ""
+    api_key = ke.strip() if ke else ""
 
-if not api_key:
-    st.warning("Por favor ingresa tu API key.")
-elif analyze_button:
-    objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
-    if canvas_result is None or canvas_result.image_data is None or not objetos:
-        st.warning("🏎️ ¡Primero dibuja algo en la pista!")
-    else:
-        with st.spinner("🏎️ Calentando motores... escribiendo tu historia"):
-            try:
-                client = OpenAI(api_key=api_key)
-                base64_image = imagen_a_base64(canvas_result.image_data)
-                prompt_text = (
-                    "Mira este dibujo hecho a mano y escribe una historia corta, creativa y amena "
-                    "en español (máximo 3 párrafos) inspirada en lo que ves. Ponle un título."
-                )
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt_text},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {"url": f"data:image/png;base64,{base64_image}"},
-                                },
-                            ],
-                        }
-                    ],
-                    max_tokens=700,
-                )
-                st.session_state.mi_respuesta = response.choices[0].message.content or ""
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+    if not api_key:
+        st.warning("Por favor ingresa tu API key.")
+    elif analyze_button:
+        objetos = (canvas_result.json_data or {}).get("objects", []) if canvas_result is not None else []
+        if canvas_result is None or canvas_result.image_data is None or not objetos:
+            st.warning("🏎️ ¡Primero dibuja algo en la pista!")
+        else:
+            with st.spinner("🏎️ Calentando motores... escribiendo tu historia"):
+                try:
+                    client = OpenAI(api_key=api_key)
+                    base64_image = imagen_a_base64(canvas_result.image_data)
+                    prompt_text = (
+                        "Mira este dibujo hecho a mano y escribe una historia corta, creativa y amena "
+                        "en español (máximo 3 párrafos) inspirada en lo que ves. Ponle un título."
+                    )
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt_text},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+                                    },
+                                ],
+                            }
+                        ],
+                        max_tokens=700,
+                    )
+                    st.session_state.mi_respuesta = response.choices[0].message.content or ""
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
 
-if st.session_state.mi_respuesta:
-    with st.container(key="result_card"):
-        st.markdown('<div class="card-h">📖 Tu historia</div>', unsafe_allow_html=True)
-        st.markdown(st.session_state.mi_respuesta)
+    if st.session_state.mi_respuesta:
+        with st.container(key="result_card"):
+            st.markdown('<div class="card-h">📖 Tu historia</div>', unsafe_allow_html=True)
+            st.markdown(st.session_state.mi_respuesta)
