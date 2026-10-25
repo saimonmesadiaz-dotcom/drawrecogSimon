@@ -21,6 +21,8 @@ st.set_page_config(
 
 if "canvas_v" not in st.session_state:
     st.session_state.canvas_v = 0
+if "stroke_color" not in st.session_state:
+    st.session_state.stroke_color = "#000000"
 if "mi_respuesta" not in st.session_state:
     st.session_state.mi_respuesta = ""
 
@@ -33,6 +35,26 @@ def flat(html: str) -> str:
 # =========================================================================
 # CSS: crema + amarillo cromo + café + asfalto y rojo de carrera
 # =========================================================================
+PALETAS = {
+    "Rojos": ["#FF8A80", "#FF5252", "#E53935", "#C62828", "#B71C1C"],
+    "Naranjas": ["#FFCC80", "#FFA726", "#FB8C00", "#F57C00", "#FF6D00"],
+    "Amarillos": ["#FFF59D", "#FFEE58", "#FDD835", "#F0B03C", "#FFD600"],
+    "Verdes": ["#81C784", "#43A047", "#2E7D32", "#556B2F", "#1B5E20"],
+    "Aguamarinas": ["#7FFFD4", "#4DD0E1", "#26C6DA", "#00897B", "#00695C"],
+    "Azules": ["#64B5F6", "#1E88E5", "#1565C0", "#0047AB", "#0D47A1"],
+    "Morados": ["#CE93D8", "#BA68C8", "#9C27B0", "#7B1FA2", "#4A148C"],
+    "Rosados": ["#F8BBD0", "#FFB6C1", "#F06292", "#E91E63", "#AD1457"],
+    "Vinos tintos": ["#B5495B", "#9B2335", "#800020", "#6B1E2E", "#4A1420"],
+    "Cremas y beige": ["#FFF8E1", "#F5E6C8", "#E8D5B0", "#D2B48C", "#C2A27C"],
+    "Neutros": ["#FFFFFF", "#BDBDBD", "#6B6B6B", "#2D2A26", "#000000"],
+}
+
+TABLEROS = {
+    "Panorámico (960×300)": (960, 300),
+    "Extra panorámico (1080×280)": (1080, 280),
+    "Compacto (760×300)": (760, 300),
+}
+
 CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Racing+Sans+One&display=swap');
 
@@ -56,6 +78,8 @@ CSS = """
 .block-container, [data-testid="stMainBlockContainer"] {
   position: relative; z-index: 0;
   padding-top: 2rem !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
   padding-bottom: 200px !important;
 }
 
@@ -131,7 +155,7 @@ CSS = """
 
 /* ---------------- TABLERO (centrado) ---------------- */
 .st-key-canvas_card {
-  background: #FFFDF7; border: 4px solid var(--tinta); border-radius: 16px; padding: 16px;
+  background: #FFFDF7; border: 4px solid var(--tinta); border-radius: 16px; padding: 12px;
   box-shadow: 8px 8px 0 var(--tinta);
   width: fit-content !important; max-width: 100%; margin-left: auto; margin-right: auto; align-items: center;
 }
@@ -144,7 +168,7 @@ CSS = """
 /* ---------------- TARJETAS DE ANÁLISIS (vino tinto, textos blancos) ---------------- */
 .st-key-key_card, .st-key-result_card {
   background: var(--vino); border: 3px solid var(--tinta); border-radius: 16px; padding: 18px 20px;
-  box-shadow: 6px 6px 0 var(--tinta); width: 100%; max-width: 898px; margin: 16px auto 0 auto;
+  box-shadow: 6px 6px 0 var(--tinta); width: 100%; max-width: 100%; margin: 16px auto 0 auto;
 }
 .st-key-result_card { background: var(--vino-oscuro); border-left: 12px solid var(--boton); }
 .st-key-result_card p, .st-key-result_card li, .st-key-result_card span { color: #FFFFFF !important; font-size: 1.08rem; line-height: 1.55; }
@@ -205,7 +229,26 @@ CSS = """
 @keyframes spark { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(-55px); opacity: 0; } }
 """
 
-st.markdown("<style>" + "\n".join(l for l in CSS.splitlines() if l.strip()) + "</style>", unsafe_allow_html=True)
+CSS_SWATCH = """
+.pal-name { color: #FFE7A8; font-size: .82rem; font-weight: 600; margin: 10px 0 3px; letter-spacing: .6px; text-transform: uppercase; }
+[class*="st-key-sw_"] button {
+  height: 34px !important; min-height: 34px !important; padding: 0 !important;
+  border: 2px solid #1F1308 !important; border-radius: 8px !important; box-shadow: 2px 2px 0 #1F1308 !important;
+}
+[class*="st-key-sw_"] button p { color: #FFFFFF !important; font-size: 1rem !important; font-family: 'Fredoka', sans-serif !important; text-shadow: 0 0 3px #000; }
+[class*="st-key-sw_"] button[kind="primary"],
+[class*="st-key-sw_"] button[data-testid="stBaseButton-primary"] { outline: 3px solid #FFFFFF; outline-offset: 1px; }
+"""
+for _pi, _cols in enumerate(PALETAS.values()):
+    for _hex in _cols:
+        _k = f"sw_{_pi}_{_hex.lstrip('#')}"
+        CSS_SWATCH += (
+            f".st-key-{_k} button, .st-key-{_k} button:hover, .st-key-{_k} button:focus, "
+            f".st-key-{_k} button:active {{ background: {_hex} !important; }}\n"
+        )
+CSS_TOTAL = CSS + CSS_SWATCH
+
+st.markdown("<style>" + "\n".join(l for l in CSS_TOTAL.splitlines() if l.strip()) + "</style>", unsafe_allow_html=True)
 
 # =========================================================================
 # FONDO: líneas de velocidad (sin stickers)
@@ -336,7 +379,32 @@ with st.sidebar:
 
     st.markdown('<div class="side-title">🛠️ Ajustes de pista</div>', unsafe_allow_html=True)
     stroke_width = st.slider("Ancho de línea", 1, 30, 5)
-    stroke_color = st.color_picker("Color del trazo", "#000000")
+    tam_nombre = st.selectbox("Tamaño del tablero", list(TABLEROS.keys()))
+    canvas_w, canvas_h = TABLEROS[tam_nombre]
+
+    st.markdown('<div class="side-title">🎨 Color del trazo</div>', unsafe_allow_html=True)
+    for _pi, (_nombre, _colores) in enumerate(PALETAS.items()):
+        st.markdown(f'<div class="pal-name">{_nombre}</div>', unsafe_allow_html=True)
+        _cols = st.columns(5, gap="small")
+        for _col, _hex in zip(_cols, _colores):
+            with _col:
+                _activo = st.session_state.stroke_color.lower() == _hex.lower()
+                if st.button(
+                    "✓" if _activo else "\u00a0",
+                    key=f"sw_{_pi}_{_hex.lstrip('#')}",
+                    help=_hex,
+                    type="primary" if _activo else "secondary",
+                    use_container_width=True,
+                ):
+                    st.session_state.stroke_color = _hex
+                    st.rerun()
+
+    _elegido = st.color_picker("Color personalizado", st.session_state.stroke_color)
+    if _elegido.lower() != st.session_state.stroke_color.lower():
+        st.session_state.stroke_color = _elegido
+        st.rerun()
+    stroke_color = st.session_state.stroke_color
+
     herramientas = {
         "✏️ Pincel libre": "freedraw",
         "📏 Línea recta": "line",
@@ -385,16 +453,21 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown(
+    f"<style>.st-key-key_card, .st-key-result_card {{ max-width: {canvas_w + 32}px; }}</style>",
+    unsafe_allow_html=True,
+)
+
 with st.container(key="canvas_card"):
     canvas_result = st_canvas(
         fill_color="rgba(240, 176, 60, 0.30)",
         stroke_width=stroke_width,
         stroke_color=stroke_color,
         background_color="#FFFFFF",
-        height=360,
-        width=860,
+        height=canvas_h,
+        width=canvas_w,
         drawing_mode=drawing_mode,
-        key=f"canvas_{st.session_state.canvas_v}",
+        key=f"canvas_{st.session_state.canvas_v}_{canvas_w}_{canvas_h}",
     )
 
 # =========================================================================
